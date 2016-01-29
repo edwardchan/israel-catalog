@@ -1,0 +1,67 @@
+@charset "utf-8";
+/*$Id: style.css,v 1.3.2.8.2.18 2009/01/26 23:49:06 tombigel Exp $*/
+/**
+ * Tendu Drupal - A CSS Theme For Developers
+ * Author: Tom Bigelajzen (http://drupal.org/user/173787) - http://tombigel.com
+ */
+body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, a, pre, code, form, fieldset, legend, input, textarea, p, blockquote, table, th, td { margin:0; padding:0; }
+img, fieldset, legend, table, tr, td, th { border:none; }
+table, td { vertical-align:top; text-align:left; }/*LTR*/
+th { vertical-align:middle; text-align:left; }/*LTR*/
+ul, ol { margin:0; }
+.profile, .node-form .standard { clear:none; }
+.sidebar-region .item-list ul li { list-style-image:none; list-style-type:none; padding:0; margin:0; }
+li.leaf { list-style-image:none; list-style-type:disc }
+button, input.form-submit { cursor:pointer; }
+#user-login-form li.openid-link, #user-login li.openid-link { padding-left:1.5em; }
+html, body { height:100%; }
+#page { height:auto !important; height:100%; min-height:100%; position:relative; }
+.footer-spacer { padding-bottom:4em; }
+#footer { position:absolute; bottom:0; height:4em; width:100%; z-index:1; overflow:hidden; }
+body { font-family:Tahoma, Arial, Helvetica, sans-serif; font-size:100%; }/*LTR*/ /*IE*/
+#page { font-size:.75em; line-height:1.333em; }
+table { font-size:1em }
+#page {width:960px; margin:0 auto; }
+#sidebar-first { float:left; width:180px; }/*LTR*/
+#sidebar-second { float:right; width:180px; }/*LTR*/
+.with-sidebar-first #content { margin-left:180px; padding-left:25px }/*LTR*//*IE6*/
+.with-sidebar-second #content { margin-right:180px; padding-right:25px }/*LTR*//*IE6*/
+#header, #main-nav, #before-content, #after-content, #content-header, #content-top, #content-area, #content-bottom, #main, #footer { width:100%; }
+#header-content, #default-content, #content { height:1%; }
+.node-form { height:1%; }
+#header:after, #header-content:after, #main-nav:after, #before-content:after, #after-content:after, #main:after, #content:after, #default-content:after, #footer:after { content:"."; display:block; height:0; clear:both; visibility:hidden; }
+#content-header, #content-top, #content-area, #content-bottom { overflow:hidden; }
+.accessibility-link { background:none; font-weight:bold; display:block; overflow:hidden; position:absolute; z-index:1; left:12px; white-space:nowrap; height:1px; margin-top:-1px }/*LTR*/
+.accessibility-anchor { display:block; overflow:hidden; height:1px; margin-top:-1px }
+.accessibility-link:focus { background:#fff; height:auto; margin:0; }
+#language-switcher h2, h2.primary-links-title, h2.secondary-links-title { overflow:hidden; height:1px; margin-top:-1px; }
+
+
+
+/** custom **/
+
+ #footer #block-block-2 .sideblock1 .link a.x {
+    background: url("/sites/all/themes/tendu/tendu_default/images/pinterest-icon.png") no-repeat scroll 5px 4px rgba(0, 0, 0, 0);
+}
+
+#Payment-method{
+
+display:none;
+}
+
+
+
+
+
+#uc-cart-pane-quotes #edit-get-quote {
+    background: url("/sites/all/themes/tendu/tendu_default/images/calc-button.jpg") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+    border: 0 none;
+    color: #FFFFFF;
+    font-size: 19px;
+    font-weight: bold;
+    height: 36px;
+    position: relative;
+    right: 0;
+    top: -1px;
+    width: 150px;
+}

@@ -1,0 +1,74 @@
+@charset "utf-8";
+/*$Id: ie.css,v 1.2.2.2.2.5 2009/01/24 18:31:51 tombigel Exp $*/
+/**
+ * Tendu Drupal - A CSS Theme For Developers
+ * Incremental CSS overrides for IE (all variants)
+ * Author: Tom Bigelajzen (http://drupal.org/user/173787) - http://tombigel.com
+ */
+
+/** 
+ * "break-word" causes IE to break long text with no white-spaces,
+ * otherwise, because of it's non-standard block sizing behavior it
+ * breakes the layout - especially when RTL is involved.
+ * It's actually a very useful decleration.
+ */
+body{word-wrap: break-word;}
+
+/* Fix IE7 collapsed fieldsets (The defitition in system.css don't apply on IE7, TODO: Check why) */
+html.js fieldset.collapsed legend{display:inline}
+
+
+/*IE8 amd below - Regular [ This will act also on IE7 and below ]*/
+#block-search-0 #edit-search-block-form-1 { padding-top:10px;}
+#block-constant_contact-0 #edit-cc-email-wrapper input {padding-top:5px; height:auto; padding-bottom:6px;}
+#cart-form-products td.subtotal { right:-740px;}
+.outer-pane-wrap.billing-pane .fieldset-wrapper .address-pane-table .form-required, .outer-pane-wrap.delivery-pane .fieldset-wrapper .address-pane-table .form-required { left:10px;}
+.cart-review thead tr th { height:24px;}
+#cart-pane table {margin-left:10px; width:732px; margin-bottom:6px;}
+#cart-pane .desc {width:365px !important;}
+.page-cart legend a {margin-bottom:10px;}
+input.form-text {line-height:26px;}
+input#edit-qty, .billing-pane input, .delivery-pane input {line-height:inherit;}
+#cart-form-products #edit-items-0-qty {line-height:15px;}
+#block-search-0 input.form-text {line-height:normal; margin-top:-10px !important;}
+HTML.js fieldset.collapsible .fieldset-wrapper {overflow:hidden;}
+#line-items-div tr {min-height:25px;}
+#block-constant_contact-0 input.form-text {line-height:12px;}
+#edit-panes-quotes-quote-button {top:10px;}
+.quotes-pane.outer-pane-wrap .solid-border#quote {margin-top:20px;}
+.page-search404 #default-content input {line-height:normal !important;}
+
+/*IE7 and below - with "*" before every property*/
+.reg-top .reg-top-right-pane {*width:49%;}
+#block-search-0 {*width:755px;}
+#before-content #block-search-0 .form-submit {*width:108px;}
+#gen-main > select {*right:78px;}
+.gen-outer-wrapper .outer-bottom {*padding:0px; *height:12px;}
+.node-type-general #after-content {*margin-bottom:15px;}
+.footer-wrapper {*border-top:0px none;}
+.pp-se {*padding:2px 0px 4px 0px;}
+.block-megamenu {*z-index:999999;}
+.login-wrapper-bottom {*height:11px; *padding:0px;}
+#cart-form-products td.subtotal { *position:static; *right:0px; *top:0px; *padding:10px 10px 0px 0px;}
+#cart-pane td.subtotal { *position:static; *right:0px; *top:0px; *padding:10px 10px 0px 0px;}
+#cart-form-products {*background:url(/sites/all/themes/tendu/tendu_default/images/rpt-tabs-big.jpg) repeat-y;}
+#cart-form-pane {*background:none;}
+#uc-cart-view-form {*padding-top:4px; *background:none;}
+#cart-form-pane .tableheader { *background:url(/sites/all/themes/tendu/tendu_default/images/top-tabs-big.jpg) no-repeat 50% top; *padding-top:10px;}
+#cart-form-products tr td.remove input {*text-indent:0px;}
+#gen-shop {*padding-bottom:100px;}
+.cfb-left {*width:48%;}
+.cfb-left .cfb-l-right {*width:340px;}
+.reg-wrapper-bottom {*height:11px; *padding:0px;}
+#footer #block-block-3 { *float:right; *width:79%;}
+.page-search .outer-wrap .inner-bottom {*height:9px; *padding-bottom:0px;}
+#sidebar-first-inner #sfi-bottom {*height:8px; *padding-bottom:0px;}
+#block-constant_contact-0 .form-submit {*padding-bottom:0px;}
+.hed-cont-active .title {*padding-top:2px;}
+#line-items-div tr {*height:25px;}
+#block-search-0 {*width:755px;}
+.ui-tabs .ui-tabs-panel > div > .view .caroufredsel_wrapper { *overflow:hidden !important;}
+#google_ads_div_Israel-catalog_category-page_bottom-left_728x90 object {*float:left; *margin-right:10px;}
+#edit-qty {*line-height:normal !important;}
+/*All ie*/
+.view-suppliers-ownproducts .views-exposed-form input.form-text {line-height:normal;}

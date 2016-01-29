@@ -1,0 +1,15 @@
+#footer #block-nice_menus-6 li a:hover { color:#96A638 !important; text-decoration:none !important; }
+.above-wrapper #above-header #block-block-1 { line-height:2.4 !important; }
+.sidebar-region ul.nice-menu li.last, li.megamenu-parent.last { border-bottom:0 none; }
+.front #content-bottom .block-cpo_isr_special .form-submit { font-size:15px !important; height:45px !important; padding-bottom:5px !important; }
+.ui-tabs .tabs-in-wrapper .product-body, .page-cart .free-text h2, .term-description h2 { margin-bottom:8px; }
+.outer-pane-wrap .form-radio { margin-right:6px; margin-top:-2px; }
+.outer-pane-wrap.coupon-pane #edit-panes-coupon-coupon-mark { margin-left:6px; margin-right:1px; margin-top:-2px; }
+.outer-pane-wrap.gift_order-pane #edit-panes-gift-order-gift-order-mark { margin-left:6px; margin-right:1px; margin-top:-2px; }
+.outer-pane-wrap.payment-pane #edit-panes-payment-payment-method-paypal-wps, .outer-pane-wrap.payment-pane #edit-panes-payment-payment-method-credit, .outer-pane-wrap.payment-pane #edit-panes-payment-payment-method-other { margin:-2px 1px 0 3px; }
+.sfi-m-title { text-align:center; }
+.reg-top .reg-top-left-pane { margin-right:25px !important; min-height:230px !important; padding-left:24px !important; padding-right:1% !important; padding-top:15px !important; width:342px !important; }
+.reg-top .reg-top-right-pane { width:323px !important; }
+.page-search .inner-mid .node-unpublished {
+  display: none;
+}

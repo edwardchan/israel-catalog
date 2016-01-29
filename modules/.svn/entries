@@ -1,0 +1,157 @@
+8
+
+dir
+733
+https://cpodev.jira.com/svn/ISR/trunk/modules
+https://cpodev.jira.com/svn
+
+
+
+2010-11-25T08:57:42.535820Z
+733
+asaph
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+e6edf6fb-f266-4316-afb4-e53d95876a76
+
+node_import
+dir
+
+apachesolr
+dir
+
+uc_generate
+dir
+
+jquery_update
+dir
+
+uc_ajax_cart
+dir
+
+uc_custom_price
+dir
+
+translate_this
+dir
+
+views404
+dir
+
+uc_product_actions
+dir
+
+uc_coupon
+dir
+
+cpo_isr_special
+dir
+
+onepageprofile
+dir
+
+apachesolr_autocomplete
+dir
+
+uc_product_power_tools
+dir
+
+uc_gbase
+dir
+
+apachesolr_ubercart
+dir
+
+uc_gift_order
+dir
+
+similarterms
+dir
+
+uc_suppliers
+dir
+
+path_redirect
+dir
+
+serapi
+dir
+
+uc_views
+dir
+
+uc_termsofservice
+dir
+
+fancy_login
+dir
+
+apachesolr_money
+dir
+
+uc_tracking
+dir
+
+uc_reorder
+dir
+
+apachesolr_facetbuilder
+dir
+
+uc_apc
+dir
+
+uc_upsell
+dir
+
+search404
+dir
+
+megamenu
+dir
+
+apachesolr_stats
+dir
+
+uc_discounts_alt
+dir
+
+uc_addresses
+dir
+
+ubercart
+dir
+
+ud
+dir
+
+uc_checkout_tweaks
+dir
+
+uc_microcart
+dir
+
+uc_aac
+dir
+
+uc_referrals
+dir
+
+elements
+dir
+
+page_title
+dir
+
