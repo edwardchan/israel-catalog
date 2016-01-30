@@ -28,6 +28,7 @@ if (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))) {
     <link type="text/css" rel="stylesheet" media="all" href="/sites/all/themes/tendu/ie7.css?o" />
     <![endif]-->
 	<?php endif; ?>
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
     <?php print $scripts; ?>
 
 
@@ -173,7 +174,7 @@ if (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2))) {
 		   <?php if(arg(0) == 'taxonomy' && arg(1) == 'term'): ?>
 		     <div class="ct-title" style="float: left;width: 56%;">
 		   <?php endif; ?>
-               <<?php ($is_front) ? print 'h2' : print 'h1'; ?> class="title">
+               <?php ($is_front) ? print 'h2' : print 'h1'; ?> class="title">
                  <?php  print $title; ?>
                </<?php ($is_front) ? print 'h2' : print 'h1'; ?>>
 		   <?php if(arg(0) == 'taxonomy' && arg(1) == 'term'): ?>

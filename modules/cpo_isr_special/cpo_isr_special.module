@@ -8,7 +8,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License.
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details. 
+ * but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details.
  */
 /*
 function cpo_special_silver_fix() {
@@ -28,11 +28,19 @@ function cpo_special_silver_fix() {
 */
 
  /**
+  * Implementation of hook_cron().
+  */
+function cpo_isr_special_cron() {
+  watchdog('Cache clear', 'cleared cache');
+  drupal_flush_all_caches();
+}
+
+ /**
  * Implementation of hook_menu().
  */
 function cpo_isr_special_menu() {
   $items = array();
-  
+
  /* $items['admin/settings/fix-suppliers'] = array(
     'title' => 'Fix supllier names',
     'page callback' => 'cpo_isr_special_supp',
@@ -54,17 +62,17 @@ function cpo_isr_special_menu() {
     'access arguments' => array('access administration pages'),
 	'weight' => 99,
     'type' => MENU_NORMAL_ITEM,
-   );   
+   );
 
   return $items;
 }
 
- 
+
 /*
  * fix imported products function
 */
 function cpo_isr_special_fix_import_page($form_state) {
-  
+
   $form['cpo_isr_special_fix_import_nid_start'] = array(
     '#type' => 'textfield',
     '#title' => t('fix products who\'s nid STARTS at'),
@@ -72,16 +80,16 @@ function cpo_isr_special_fix_import_page($form_state) {
     '#size' => 20,
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_fix_import_nid_end'] = array(
     '#type' => 'textfield',
     '#title' => t('fix products who\'s nid ENDS at'),
     '#default_value' => "",
     '#size' => 20,
     '#required' => TRUE,
-  );  
+  );
   $form['submit'] = array('#type' => 'submit', '#value' => t('fix products'));
-  
+
   return $form;
 }
 
@@ -92,7 +100,7 @@ function cpo_isr_special_fix_import_page($form_state) {
 function cpo_isr_special_fix_import_page_submit($form, &$form_state) {
   $startnid = $form_state['values']['cpo_isr_special_fix_import_nid_start'];
   $endnid = $form_state['values']['cpo_isr_special_fix_import_nid_end'];
-  
+
   if(is_numeric($startnid) && is_numeric($endnid)) {
     $output = "";
     $output = cpo_special_attribute_page($startnid,$endnid);
@@ -122,11 +130,11 @@ function cpo_special_attribute_page($startnid,$endnid) {
 		  $optionarr[$value] = $value;
         }
     }
-	
+
     //dsm($attarr);
     //dsm($optionarr);
 	//dsm($node->attributes);
-	
+
 	foreach($node->attributes as $attkey => $attribute) { //loop product atteributes
 	  if(!array_key_exists($attkey,$attarr)) { // if that attribute does not belong to that product
 	    db_query('DELETE FROM uc_product_attributes WHERE nid = %d AND aid = %d',$node->nid,$attkey); //remove attribute for that product
@@ -140,14 +148,14 @@ function cpo_special_attribute_page($startnid,$endnid) {
 		    db_query('DELETE FROM uc_product_options WHERE nid = %d AND oid = %d',$node->nid,$opkey); //remove option for that product
 			unset($node->attributes[$attkey]->options[$opkey]); // also remove from node object
 		  }
-		}	  
+		}
 	}
 	//dsm($node->attributes);
 	cpo_isr_more_rewrite_meta($node);
-	
+
 	$output_sub = add_correspond_attribute($node->nid, $attarr);
 	unset($node);
-	//dsm($node);	
+	//dsm($node);
 
   $output .= 'product nid[' . $nid . '] ' . $output_sub . "<br />";
   }
@@ -155,7 +163,7 @@ function cpo_special_attribute_page($startnid,$endnid) {
 
 }
 /*
- * add_correspond_attribute adds to a node attributes not found but should have been accourding to corresponding attributes 
+ * add_correspond_attribute adds to a node attributes not found but should have been accourding to corresponding attributes
 **/
 function add_correspond_attribute($nid, $attarr = array()) {
   //dsm('add_correspond_attribute:');
@@ -166,29 +174,29 @@ function add_correspond_attribute($nid, $attarr = array()) {
   $output_sub = ' ';
   if(array_key_exists(17,$attarr)) { //name format exists
     if(!array_key_exists(16,$attarr)) { //name DOESNT exists
-	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 16, "Name", 0, 0, 1, 0)',$nid); 
-	  db_query('INSERT INTO uc_product_options VALUES (%d, 48, 0, 0, 0, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 16, "Name", 0, 0, 1, 0)',$nid);
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 48, 0, 0, 0, 0)',$nid);
 	  $output_sub .= 'name added.';
 	}
   }
 
   if(array_key_exists(49,$attarr)) { //Engraving Text exists
     if(!array_key_exists(3,$attarr)) { //Engraving DOESNT exists
-	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 3, "Engraving", 0, 0, 1, 0)',$nid); 
-	  db_query('INSERT INTO uc_product_options VALUES (%d, 32, 0, 0, 0, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 3, "Engraving", 0, 0, 1, 0)',$nid);
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 32, 0, 0, 0, 0)',$nid);
 	  $output_sub .= 'engraving added.';
 	}
-  } 
+  }
 
   if(array_key_exists(31,$attarr)) { //Dedication exists
     if(!array_key_exists(32,$attarr)) { // Dedication Text DOESNT exists
-	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 32, "Dedication Text", 0, 0, 1, 0)',$nid); 
-	  db_query('INSERT INTO uc_product_options VALUES (%d, 791, 0, 0, 0, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 32, "Dedication Text", 0, 0, 1, 0)',$nid);
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 791, 0, 0, 0, 0)',$nid);
 	  $output_sub .= 'Dedication added.';
 	}
-  }  
-  
-  return $output_sub;  
+  }
+
+  return $output_sub;
 }
 
 function cpo_isr_special_init() {
@@ -232,17 +240,17 @@ function cpo_isr_special_init() {
     }
 	// Search pages only
     if (arg(0) == 'search') {
-      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/sortlist.js', 'theme');  
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/sortlist.js', 'theme');
     }
 	// cart and checkout only
 	if (arg(0) == 'cart' && arg(1) == 'checkout' && !arg(2)) {
-      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.qtip-1.0.0-rc3.js', 'theme', 'footer');  
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.qtip-1.0.0-rc3.js', 'theme', 'footer');
       drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/checkout2.js', 'theme', 'footer');
       drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/js/prettyPhoto/css/prettyPhoto.css', 'theme');
 	}
 	if (arg(0) == 'cart' && arg(1) != 'checkout') {
       drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/checkout.js', 'theme', 'footer');
-	}	
+	}
 	if (arg(0) == 'cart') {
       drupal_add_css(drupal_get_path('theme','tendu_default') . '/carts.css', 'theme');
 	}
@@ -258,8 +266,8 @@ function cpo_isr_special_init() {
 	drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/custom.all.css', 'theme');
 	drupal_add_css(drupal_get_path('theme','tendu_default') . '/custom.css', 'theme');
     drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/custom.all.js', 'theme', 'footer');
-	
-	
+
+
 	//check if a multivariate study is in order and has a success story from URL query
     $mutationid = $_GET['mutationid'];
     if($mutationid) {
@@ -311,7 +319,7 @@ function cpo_isr_special_fix_imported_attributes() {
 	//node_save($node);
     $mes .= 'Model: ' . $prod->field_prod_temp_default_option_value . ' , NID: ' . $prod->nid . ' , Combination: <pre>' . $atts . '</pre> --- ';
   }
-  
+
   drupal_set_message($mes);
   drupal_goto();
 }
@@ -332,7 +340,7 @@ function cpo_isr_special_admin() {
     '#description' => t("Text to be shown for the search bar (all pages)"),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_wholesalers_discount_on_attributes'] = array(
     '#type' => 'textfield',
     '#title' => t('Discount (%) on attributes for wholesellers'),
@@ -340,7 +348,7 @@ function cpo_isr_special_admin() {
     '#description' => t("Enter a percentage to use for discounting attributes for wholesellers. For exmaple, enter '20' to give wholesellers a 20% on the price addition for attributes. If the normal price is $10, and the wholeseller price is $5, and a selected attribute has added $2 to that price, the wholeseller pricing will be $5+$1.60 = $6.6"),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_wholesalers_up_percentage'] = array(
     '#type' => 'textfield',
     '#title' => t('Upmark in % on cost for wholesellers (logic: cost+(cost/100*upmark)'),
@@ -355,7 +363,7 @@ function cpo_isr_special_admin() {
     '#description' => t("Enter the conversion rate for NIS/USD (e.g. '3.65')"),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_display_contact_block'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show ACTIVE contact us block in header'),
@@ -382,7 +390,7 @@ function cpo_isr_special_admin() {
     '#description' => t(""),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_no_video'] = array(
     '#type' => 'textarea',
     '#title' => t('HTML for Product page when no video is available from YouTube'),
@@ -401,7 +409,7 @@ function cpo_isr_special_admin() {
     '#cols' => 100,
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_review_text'] = array(
     '#type' => 'textarea',
     '#title' => t('Text for display on the review page, below the process button'),
@@ -410,14 +418,14 @@ function cpo_isr_special_admin() {
     '#cols' => 100,
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_product_text'] = array(
     '#type' => 'textfield',
     '#title' => t('Text for display on the product page, just below the Add To Cart button'),
     '#default_value' => variable_get('cpo_isr_special_product_text', t('<a href="http://www.israel-catalog.com/help">Have a problem? Click here</a>')),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_upsell'] = array(
     '#type' => 'fieldset',
     '#title' => t('Upsell A/B Testing'),
@@ -425,11 +433,11 @@ function cpo_isr_special_admin() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  
+
   $upsell_conf = variable_get('uc_upsell_config', uc_upsell_get_config_defaults());
   //$upsell_conf = unserialize($upsell_conf);
-  
-  
+
+
   $form['cpo_isr_special_upsell']['cpo_isr_special_upsell_items_num'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of "upsell" tagged items to display'),
@@ -437,7 +445,7 @@ function cpo_isr_special_admin() {
     '#description' => t("The Upsell pane on cart page shows !max item. out of which, how many items should be comming from products tagged with \"Upsell\". The rest of the items will be produced by the upsell module",array('!max'=> $upsell_conf['pane']['max'])),
     '#required' => TRUE,
   );
-  
+
   $form['cpo_isr_special_slip_footer_text'] = array(
     '#type' => 'textarea',
     '#title' => t('Text for bottom of package slip.'),
@@ -446,8 +454,8 @@ function cpo_isr_special_admin() {
     '#cols' => 100,
     '#required' => TRUE,
   );
-  
-  
+
+
   return system_settings_form($form);
 }
 
@@ -539,7 +547,7 @@ function cpo_isr_special_block($op = 'list', $delta = '', $edit = array()) {
 	  }
 	  else {
         $block['subject'] = t('CPO - Custom Search Box - ') . $delta;
-        $block['content'] = cpo_isr_special_custom_search_box_content($delta);     
+        $block['content'] = cpo_isr_special_custom_search_box_content($delta);
 	  }
       return $block;
   }
@@ -554,7 +562,7 @@ function cpo_isr_special_ajax_logo_content() {
 	$sender .= '+';
   }
   // 000
-  
+
 	  if (!isset($_SESSION['uc_referral_code'])) {
 	    //search is set in allowed engines?
 	    $search = serapi_get_search($sendref);
@@ -574,7 +582,7 @@ function cpo_isr_special_ajax_logo_content() {
 	  else {
 	    $sender .= 'alrs';
 	  }
-  
+
   // 000
   //$spec = uc_referrals_init(true, $sendref);
   global $base_path;
@@ -592,7 +600,7 @@ function cpo_isr_special_ajax_logo_content() {
   $alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store';
   //$alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store' . $sendref . ' - ' . $spec;
   //$alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store - ' . $sender;
-  
+
   $output = '<div id="site-logo"><a rel="home" title="'. $alttext .'" name="home" href="/">';
   $output .= '<img id="logo-image" alt="'. $alttext .'" src="' . $img . '">';
   $output .= '</a></div>';
@@ -612,7 +620,7 @@ function cpo_isr_special_custom_search_box_content($delta) {
 	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
 	  }
       $output .= '</select></div>';
-	  
+
 	  $output .= '<div class="select-float"><select id="pdfdo1-2" class="pfdo1" name="secondoptions">';
 	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_1_line_second', 'Select an event ...') . '</option>';
 	  $terms = taxonomy_get_tree(6);
@@ -620,7 +628,7 @@ function cpo_isr_special_custom_search_box_content($delta) {
 	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
 	  }
       $output .= '</select></div>';
-	  
+
 	  $output .= '</form>';
 	  $output .= '<form id="ciscsb-' . $delta . '-delta" method="get" action="/search/apachesolr_search" name="quiform">';
 	  $output .= '<input type="hidden" id="pfdid1" type="text" name="filters" value="" />';
@@ -632,7 +640,7 @@ function cpo_isr_special_custom_search_box_content($delta) {
 	  //$output .= '<span class="pretext">Quickly find the perfect gift!</span>';
 	  $output .= '<span class="icon-pic"></span>';
 	  $output .= '<div><form name="demiqua">';
-	  
+
 	  $output .= '<div class="select-float"><select id="pdfdo2-1" class="pfdo2" name="secondoptions2">';
 	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_2_line_first', 'Select a event ...') . '</option>';
 	  $terms = taxonomy_get_tree(6);
@@ -648,7 +656,7 @@ function cpo_isr_special_custom_search_box_content($delta) {
 	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
 	  }
       $output .= '</select></div>';
-	  
+
 	  $output .= '<div class="select-float"><select id="pdfdo2-3" class="pfdo2" name="thirdoptions2">';
 	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_2_line_third', 'Select a price range ...') . '</option>';
 	  $terms = taxonomy_get_tree(8);
@@ -656,7 +664,7 @@ function cpo_isr_special_custom_search_box_content($delta) {
 	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
 	  }
       $output .= '</select></div>';
-	  
+
 	  $output .= '</form>';
 	  $output .= '<form id="ciscsb-' . $delta . '-delta" method="get" action="/search/apachesolr_search" name="quaform">';
 	  $output .= '<input type="hidden" id="pfdid2" type="text" name="filters" value="" />';
@@ -693,20 +701,20 @@ GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_bottom
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_middle-left_728x90");
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_middle-right_200x90");';
   }
-  
+
   // Search pages
   elseif (arg(0) == 'search') {
     $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_search-results-page_bottom-left_468x60");
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_search-results-page_bottom-right_468x60");';
   }
-  
+
   // Front page
   elseif (arg(0) == 'node' && arg(1) == '168') {
     $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_above-footer-left_468x60");
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_above-footer-right_468x60");
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_middle-below-tabs_728x90_");';
   }
-  
+
   // Content pages
   elseif (arg(0) == 'node') {
     $node = node_load(arg(1));
@@ -720,18 +728,18 @@ GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_product-page_video-r
 GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_content-page_top-right-column_160x600");';
 	}
   }
-  
+
   if (arg(0) == 'cart') {
     return '';
   }
-  
+
   $return .= "</script>
 <script type='text/javascript'>
 GA_googleFetchAds();
 </script>";
 
   //return '';
-  
+
   return $return;
 }
 
@@ -742,7 +750,7 @@ function cpo_isr_special_pap_code($oid) {
   if (is_numeric($oid) && $oid >= 2) {
     $aff = db_result(db_query("SELECT code FROM {uc_referrals_order_codes} WHERE order_id=%d", $oid));
   }
-  
+
   $return = '<script id="pap_x2s6df8d" src="https://www.tsglobalmarketing.com/affiliates/scripts/salejs.php" type="text/javascript"></script><script type="text/javascript">';
   $i = 1;
   $total = 0;
@@ -764,7 +772,7 @@ function cpo_isr_special_pap_code($oid) {
 	//$return .= "sale" . $i . ".setSubID1('" . $order->order_id . "_" . $i . "');";
 	//$return .= "sale" . $i . ".setChannelID('" . $order->order_id . "_" . $i . "');";
 	  $return .= '
-	
+
 	  ';
 	  $i++;
 	  $total += $product->price;
@@ -786,7 +794,7 @@ function cpo_isr_special_pap_code($oid) {
 	      ";
 	    }
 	    $return .= '
-	  
+
 	    ';
 	    $i++;
 	    $z = $z-1;
