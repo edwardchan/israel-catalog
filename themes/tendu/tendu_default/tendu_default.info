@@ -14,6 +14,7 @@ stylesheets[all][] = custom.css
 
 scripts[] = footable.js
 scripts[] = custom.js
+scripts[] = /sites/all/modules/cpo_isr_special/galleryview-2.1.1/jquery.galleryview-2.1.1.js
 
 conditional-stylesheets[if IE][all][] = ie_subtheme.css
 
@@ -24,9 +25,9 @@ regions[left] = First sidebar
 regions[inner_left_sidebar] = INNER first (left) sidebar
 regions[right] = Second sidebar
 regions[content_before] = Before Content and Sidebars
-regions[content_top] = Above Main Content   
+regions[content_top] = Above Main Content
 regions[content] = Main Content
-regions[content_bottom] = Bellow Main Content 
+regions[content_bottom] = Bellow Main Content
 regions[content_after] = After Content and Sidebars
 regions[content_down] = AFTER the After Content and Sidebars
 regions[footer] = Footer
