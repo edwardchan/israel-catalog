@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/90/ISR/trunk/modules/cpo_isr_special/galleria
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/90/ISR/trunk/modules/cpo_isr_special/galleria/LICENSE
+END
+README.rst
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/90/ISR/trunk/modules/cpo_isr_special/galleria/README.rst
+END
+.gitignore
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/90/ISR/trunk/modules/cpo_isr_special/galleria/.gitignore
+END

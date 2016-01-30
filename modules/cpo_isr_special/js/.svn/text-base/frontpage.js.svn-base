@@ -1,0 +1,68 @@
+$(document).ready(function() {
+  // --> front page tabs
+  $("#fp-tabs").tabs({
+    cache: true,
+	fx: { opacity: 'toggle' }
+  });
+  $("#fpt-item").removeClass('prehide');
+  // <-- end front page tabs
+  // --> Build custom product finders
+  // (gift basket)
+  $(".pfdo1").change(function() {
+    ProductFinders(1);
+  });
+  // (gift center)
+  $(".pfdo2").change(function() {
+    ProductFinders(2);
+  });
+  // <-- end custom product finders
+  // --> make the banner visible
+  $(".fpt-item").removeClass('fpt-hider');
+  $(".view-id-front_tabs").removeClass('fpt-hider');
+  // <-- end banner
+});
+
+function ProductFinders (id) {
+  // (gift basket)
+  if (id == 1) {
+    var query;
+	query = '';
+    var location = $('#pdfdo1-1').val();
+    var event = $('#pdfdo1-2').val();
+	if (location != 'Select a destination...') {
+	  query += 'tid:' + location;
+	}
+	if (event != 'Select an event...') {
+	  //alert(event);
+	  if (location != 'Select a destination...') {
+	    query += ' ';
+	  }
+	  query += 'tid:' + event;
+	}
+	$('#pfdid1').val(query);
+  }
+  // (gift center)
+  if (id == 2) {
+    var query;
+	query = '';
+    var event = $('#pdfdo2-1').val();
+    var gender = $('#pdfdo2-2').val();
+    var price = $('#pdfdo2-3').val();
+	if (event != 'Choose an event...') {
+	  query += 'tid:' + event;
+	}
+	if (gender != 'Choose a gender...') {
+	  if (event != 'Choose an event...') {
+	    query += ' ';
+	  }
+	  query += 'tid:' + gender;
+	}
+	if (price != 'Choose a price range...') {
+	  if (event != 'Choose an event...' || gender != 'Choose a gender...') {
+	    query += ' ';
+	  }
+	  query += 'tid:' + price;
+	}
+	$('#pfdid2').val(query);
+  }
+}

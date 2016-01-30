@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
 <head>
-<meta http-equiv="Content-Type" content="text/html, charset=utf-8" />
-  <meta http-equiv="Content-Type" content="text/html, charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
 <!--[if IE]><script language="javascript" type="text/javascript" src="/sites/all/modules/flot/flot/excanvas.min.js"></script><![endif]-->
 <link rel="shortcut icon" href="/misc/favicon.ico" type="image/x-icon" />
   <title>smtp 6.x-1.0 | drupal.org</title>

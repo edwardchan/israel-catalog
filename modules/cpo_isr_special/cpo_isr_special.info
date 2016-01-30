@@ -1,0 +1,6 @@
+; $Id: cpo_isr_special.module,v 1.0.0.1 2009/08/27 22:15:23 asaphk Exp $
+name = "CPO IsraelCatalog"
+description = "Custom modules and functions"
+package = "CPO"
+core = 6.x
+version = "6.x-1.x-dev"

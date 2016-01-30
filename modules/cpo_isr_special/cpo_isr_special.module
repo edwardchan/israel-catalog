@@ -1,0 +1,926 @@
+<?php
+// $Id: cpo_isr_special.module,v 1.0.0.1 2010/08/29 22:15:23 asaphk Exp $
+
+/**
+ * @file
+ * CPO Special modules and functions
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY. See the LICENSE.txt file for more details. 
+ */
+/*
+function cpo_special_silver_fix() {
+ $output = '';
+ $sql = db_query('SELECT field_silverweight_value,nid FROM content_type_general WHERE content_type_general.nid > 6000 AND content_type_general.nid < 8001');
+ while ($fetch = db_fetch_object($sql)) {
+    //dsm($fetch);
+	if($fetch->field_silverweight_value) {
+	  $newsilver = (int)$fetch->field_silverweight_value;
+	  db_query('UPDATE content_type_general SET field_silverweight_int_value = %d WHERE nid = %d',$newsilver,$fetch->nid);
+	  $output .= 'Updated node ' . $fetch->nid . ' with silver int of ' . $newsilver . "
+	  ";
+	}
+  }
+  return $output;
+}
+*/
+
+ /**
+ * Implementation of hook_menu().
+ */
+function cpo_isr_special_menu() {
+  $items = array();
+  
+ /* $items['admin/settings/fix-suppliers'] = array(
+    'title' => 'Fix supllier names',
+    'page callback' => 'cpo_isr_special_supp',
+	'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );*/
+  $items['admin/store/settings/custom-isr'] = array(
+    'title' => 'Custom Settings',
+    'description' => 'Configure general settings for the IsraelCatalog.com website',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cpo_isr_special_admin'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/content/node_import/fix'] = array(
+    'title' => 'fix imported products',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('cpo_isr_special_fix_import_page'),
+    'access arguments' => array('access administration pages'),
+	'weight' => 99,
+    'type' => MENU_NORMAL_ITEM,
+   );   
+
+  return $items;
+}
+
+ 
+/*
+ * fix imported products function
+*/
+function cpo_isr_special_fix_import_page($form_state) {
+  
+  $form['cpo_isr_special_fix_import_nid_start'] = array(
+    '#type' => 'textfield',
+    '#title' => t('fix products who\'s nid STARTS at'),
+    '#default_value' => "",
+    '#size' => 20,
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_fix_import_nid_end'] = array(
+    '#type' => 'textfield',
+    '#title' => t('fix products who\'s nid ENDS at'),
+    '#default_value' => "",
+    '#size' => 20,
+    '#required' => TRUE,
+  );  
+  $form['submit'] = array('#type' => 'submit', '#value' => t('fix products'));
+  
+  return $form;
+}
+
+
+/**
+ * Submit function for fix import products page
+ */
+function cpo_isr_special_fix_import_page_submit($form, &$form_state) {
+  $startnid = $form_state['values']['cpo_isr_special_fix_import_nid_start'];
+  $endnid = $form_state['values']['cpo_isr_special_fix_import_nid_end'];
+  
+  if(is_numeric($startnid) && is_numeric($endnid)) {
+    $output = "";
+    $output = cpo_special_attribute_page($startnid,$endnid);
+	drupal_set_message("Result:" . "<br />" . $output);
+  }else{
+    drupal_set_message("Bad input");
+  }
+//  $dec = urldecode($form_state['values']['cpo_isr_special_fix_import_nid_start']);
+//  if ($dec != '') {
+//    drupal_set_message('Decrypted: ' . $dec);
+//  }
+}
+
+
+function cpo_special_attribute_page($startnid,$endnid) {
+ $output = '';
+ $sql = db_query('SELECT nid FROM node WHERE type = "general" AND nid >= %d AND nid <= %d',$startnid,$endnid);
+  while($nid = db_result($sql)) {
+   $node = node_load($nid);
+   $subsql = db_query('SELECT combination FROM uc_product_adjustments WHERE nid = %d',$nid);
+   $attarr = array();
+   $optionarr = array();
+    while($tempatt = db_result($subsql)) {
+      $partarr = unserialize($tempatt);
+        foreach($partarr as $key => $value)  {
+          $attarr[$key][$value] = $value;
+		  $optionarr[$value] = $value;
+        }
+    }
+	
+    //dsm($attarr);
+    //dsm($optionarr);
+	//dsm($node->attributes);
+	
+	foreach($node->attributes as $attkey => $attribute) { //loop product atteributes
+	  if(!array_key_exists($attkey,$attarr)) { // if that attribute does not belong to that product
+	    db_query('DELETE FROM uc_product_attributes WHERE nid = %d AND aid = %d',$node->nid,$attkey); //remove attribute for that product
+		unset($node->attributes[$attkey]); // also remove from node object
+	  }else {// attribute belongs to product
+
+	  }
+	  //ANYWAY - delete unneeded attribute options
+	    foreach($attribute->options as $opkey => $opobj) { //loop attribute options
+		  if(!array_key_exists($opkey,$optionarr)) { // if that option does not belong to that product's attribute
+		    db_query('DELETE FROM uc_product_options WHERE nid = %d AND oid = %d',$node->nid,$opkey); //remove option for that product
+			unset($node->attributes[$attkey]->options[$opkey]); // also remove from node object
+		  }
+		}	  
+	}
+	//dsm($node->attributes);
+	cpo_isr_more_rewrite_meta($node);
+	
+	$output_sub = add_correspond_attribute($node->nid, $attarr);
+	unset($node);
+	//dsm($node);	
+
+  $output .= 'product nid[' . $nid . '] ' . $output_sub . "<br />";
+  }
+  return $output;
+
+}
+/*
+ * add_correspond_attribute adds to a node attributes not found but should have been accourding to corresponding attributes 
+**/
+function add_correspond_attribute($nid, $attarr = array()) {
+  //dsm('add_correspond_attribute:');
+
+  //add name attribute(16) if Name Format(17) exists
+  //add Engraving attribute(3) if Engraving Text(49) exists
+  //add Dedication Text attribute(32) if Dedication(31) exists
+  $output_sub = ' ';
+  if(array_key_exists(17,$attarr)) { //name format exists
+    if(!array_key_exists(16,$attarr)) { //name DOESNT exists
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 16, "Name", 0, 0, 1, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 48, 0, 0, 0, 0)',$nid); 
+	  $output_sub .= 'name added.';
+	}
+  }
+
+  if(array_key_exists(49,$attarr)) { //Engraving Text exists
+    if(!array_key_exists(3,$attarr)) { //Engraving DOESNT exists
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 3, "Engraving", 0, 0, 1, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 32, 0, 0, 0, 0)',$nid); 
+	  $output_sub .= 'engraving added.';
+	}
+  } 
+
+  if(array_key_exists(31,$attarr)) { //Dedication exists
+    if(!array_key_exists(32,$attarr)) { // Dedication Text DOESNT exists
+	  db_query('INSERT INTO uc_product_attributes VALUES (%d, 32, "Dedication Text", 0, 0, 1, 0)',$nid); 
+	  db_query('INSERT INTO uc_product_options VALUES (%d, 791, 0, 0, 0, 0)',$nid); 
+	  $output_sub .= 'Dedication added.';
+	}
+  }  
+  
+  return $output_sub;  
+}
+
+function cpo_isr_special_init() {
+  if (arg(0) != 'admin') {
+    // ALL pages
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.carouFredSel-2.5.2-packed.js', 'theme', 'footer');
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/galleryview-2.1.1/jquery.timers-1.2.js', 'theme', 'footer');
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/galleryview-2.1.1/jquery.easing.1.3.js', 'theme', 'footer');
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.masonry.min.js', 'theme', 'footer');
+    jquery_ui_add(array('ui.tabs', 'effects.blind', 'effects.drop'));
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.validate.pack.js', 'theme', 'footer');
+	// Front page only
+    if (arg(0) == 'node' && arg(1) == '168') {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/carouFredGalleries.js', 'theme', 'footer');
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/frontpage.js', 'theme', 'footer');
+	}
+	// user reg/log only + user edit pages
+	if (arg(0) == 'login' || arg(0) == 'register' || (arg(0) == 'user' && arg(2) == 'edit')) {
+      jquery_ui_add(array('ui.datepicker'));
+	  drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/redmond/jquery-ui-1.8.6.custom.css', 'theme');
+	  if (arg(0) == 'user') {
+        drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/reglog-edit.js', 'theme', 'footer');
+	  }
+	  else {
+        drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/reglog.js', 'theme', 'footer');
+	  }
+	}
+    // Nodes only (all types, not on edit mode, not on front page)
+    elseif (arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)) {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/galleryview-2.1.1/jquery.galleryview-2.1.1.js', 'theme', 'footer');
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.scrollTo-1.4.2-min.js', 'theme', 'footer');
+      drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/galleryview-2.1.1/galleryview.css', 'theme');
+      drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/js/prettyPhoto/css/prettyPhoto.css', 'theme');
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/prettyPhoto/js/jquery.prettyPhoto.js', 'theme', 'footer');
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/node.only.js', 'theme', 'footer');
+    }
+    // Webforms only
+    if (arg(0) == 'node' && (arg(1) == '186' || arg(1) == '6449' || arg(1) == '6447' || arg(1) == '6446' || arg(1) == '6445') && !arg(2)) {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/webforms.js', 'theme', 'footer');
+      drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/webforms.css', 'theme');
+    }
+	// Search pages only
+    if (arg(0) == 'search') {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/sortlist.js', 'theme');  
+    }
+	// cart and checkout only
+	if (arg(0) == 'cart' && arg(1) == 'checkout' && !arg(2)) {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.qtip-1.0.0-rc3.js', 'theme', 'footer');  
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/checkout2.js', 'theme', 'footer');
+      drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/js/prettyPhoto/css/prettyPhoto.css', 'theme');
+	}
+	if (arg(0) == 'cart' && arg(1) != 'checkout') {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/checkout.js', 'theme', 'footer');
+	}	
+	if (arg(0) == 'cart') {
+      drupal_add_css(drupal_get_path('theme','tendu_default') . '/carts.css', 'theme');
+	}
+	// taxonomy pages only
+	if (arg(0) == 'taxonomy' && arg(1) == 'term') {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/taxo.js', 'theme', 'footer');
+	}
+	// node edit attributes pages
+	if (arg(0) == 'node' && arg(2) == 'edit' && arg(3) == 'attributes') {
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/node.edit.js', 'theme', 'footer');
+	}
+
+	drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/custom.all.css', 'theme');
+	drupal_add_css(drupal_get_path('theme','tendu_default') . '/custom.css', 'theme');
+    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/custom.all.js', 'theme', 'footer');
+	
+	
+	//check if a multivariate study is in order and has a success story from URL query
+    $mutationid = $_GET['mutationid'];
+    if($mutationid) {
+      $mutation = multivariate_mutation_get($mutationid);
+	  $state =$_GET['state'];
+	  if($state != null) {
+	    multivariate_success_store($mutationid, $mutation['mutation_id']);
+	  }
+    }
+  }
+  // admin pages
+  else {
+    if (arg(2) != 'node_import') {
+      jquery_ui_add(array('ui.datepicker'));
+      drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/admin.css', 'theme');
+      drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/admin.js', 'theme', 'footer');
+	  if (arg(1) == 'store' && arg(2) == 'ca' && arg(4) == 'edit' && arg(5) == 'conditions') {
+	    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/ca.js', 'theme', 'footer');
+	    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/jquery.select.js', 'theme', 'footer');
+	  }
+	  elseif (arg(1) == 'suppliers') {
+	    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/suppliers.js', 'theme', 'footer');
+        drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/redmond/jquery-ui-1.8.6.custom.css', 'theme');
+        drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/suppliers.css', 'theme');
+	  }
+	  elseif (arg(1) == 'user' && arg(2) == 'users-managment') {
+	    drupal_add_js(drupal_get_path('module','cpo_isr_special') . '/js/userman.js', 'theme', 'footer');
+        drupal_add_css(drupal_get_path('module','cpo_isr_special') . '/css/redmond/jquery-ui-1.8.6.custom.css', 'theme');
+	  }
+	}
+  }
+}
+
+function cpo_isr_special_fix_imported_attributes() {
+  $mes = '';
+  $atts = '';
+  $products = db_query("SELECT nid, field_prod_temp_default_option_value FROM {content_type_general} WHERE field_prod_temp_default_option_value != '' ORDER BY nid ASC");
+  // loop through comments and add to node_comments table
+  while ($prod = db_fetch_object($products)) {
+    $combination = db_result(db_query('SELECT combination FROM uc_product_adjustments WHERE model = "%s"', $prod->field_prod_temp_default_option_value));
+	$combo = unserialize($combination);
+	$atts = '';
+	//$node = node_load($prod->nid);
+	foreach ($combo as $aid => $oid) {
+	  db_query('UPDATE uc_product_attributes SET default_option = %d WHERE nid = %d AND aid = %d', $oid, $prod->nid, $aid);
+	  //$node->attributes[$aid]->default_option = $oid;
+	  $atts .= '(aid:' . $aid . ', oid: ' . $oid . ')';
+ 	}
+	//node_save($node);
+    $mes .= 'Model: ' . $prod->field_prod_temp_default_option_value . ' , NID: ' . $prod->nid . ' , Combination: <pre>' . $atts . '</pre> --- ';
+  }
+  
+  drupal_set_message($mes);
+  drupal_goto();
+}
+
+/*
+ * Admin page (general settings)
+ *
+ */
+
+function cpo_isr_special_admin() {
+  $form = array();
+  // Set the product registration text for emails
+
+  $form['cpo_isr_special_search_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search field text'),
+    '#default_value' => variable_get('cpo_isr_special_search_text', 'Search ISR!'),
+    '#description' => t("Text to be shown for the search bar (all pages)"),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_wholesalers_discount_on_attributes'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Discount (%) on attributes for wholesellers'),
+    '#default_value' => variable_get('cpo_isr_special_wholesalers_discount_on_attributes', 20),
+    '#description' => t("Enter a percentage to use for discounting attributes for wholesellers. For exmaple, enter '20' to give wholesellers a 20% on the price addition for attributes. If the normal price is $10, and the wholeseller price is $5, and a selected attribute has added $2 to that price, the wholeseller pricing will be $5+$1.60 = $6.6"),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_wholesalers_up_percentage'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Upmark in % on cost for wholesellers (logic: cost+(cost/100*upmark)'),
+    '#default_value' => variable_get('cpo_isr_special_wholesalers_up_percentage', 20),
+    '#description' => t("Enter a percentage to use for adding to the 'Cost' of the price for wholesellers"),
+    '#required' => TRUE,
+  );
+  $form['cpo_isr_special_wholesalers_dollarvalue'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Dollar value for converting cost price in NIS to USD'),
+    '#default_value' => variable_get('cpo_isr_special_wholesalers_dollarvalue', 3.6),
+    '#description' => t("Enter the conversion rate for NIS/USD (e.g. '3.65')"),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_display_contact_block'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show ACTIVE contact us block in header'),
+    '#default_value' => variable_get('cpo_isr_special_display_contact_block', TRUE),
+    '#description' => t("When the checkbox is selected - the 'Contact Us' Block will be displayed in the header. when not - the alternate block will be shown."),
+    '#required' => TRUE,
+  );
+  $form['cpo_isr_special_display_contact_block_active'] = array(
+    '#type' => 'textarea',
+    '#title' => t('ACTIVE - Text/HTML to be shown.'),
+    '#default_value' => variable_get('cpo_isr_special_display_contact_block_active', t('Active')),
+    '#rows' => 4,
+    '#cols' => 50,
+    '#description' => t(""),
+    '#required' => TRUE,
+  );
+
+  $form['cpo_isr_special_display_contact_block_notactive'] = array(
+    '#type' => 'textarea',
+    '#title' => t('NOT ACTIVE - Text/HTML to be shown.'),
+    '#default_value' => variable_get('cpo_isr_special_display_contact_block_notactive', t('Not active')),
+    '#rows' => 4,
+    '#cols' => 50,
+    '#description' => t(""),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_no_video'] = array(
+    '#type' => 'textarea',
+    '#title' => t('HTML for Product page when no video is available from YouTube'),
+    '#default_value' => variable_get('cpo_isr_special_no_video', t('No video found, showing alternate text.')),
+    '#rows' => 8,
+    '#cols' => 100,
+    '#description' => t("This HTML will be shown on product pages when no YouTube video ID has been submitted for that product."),
+    '#required' => TRUE,
+  );
+
+  $form['cpo_isr_special_cart_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Text for display in the cart checkout page'),
+    '#default_value' => variable_get('cpo_isr_special_cart_text', t('custom text')),
+    '#rows' => 8,
+    '#cols' => 100,
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_review_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Text for display on the review page, below the process button'),
+    '#default_value' => variable_get('cpo_isr_special_review_text', t('Please press "Submit My Order" only once. Your payment method will be charged.')),
+    '#rows' => 8,
+    '#cols' => 100,
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_product_text'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Text for display on the product page, just below the Add To Cart button'),
+    '#default_value' => variable_get('cpo_isr_special_product_text', t('<a href="http://www.israel-catalog.com/help">Have a problem? Click here</a>')),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_upsell'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Upsell A/B Testing'),
+    //'#weight' => 5,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  
+  $upsell_conf = variable_get('uc_upsell_config', uc_upsell_get_config_defaults());
+  //$upsell_conf = unserialize($upsell_conf);
+  
+  
+  $form['cpo_isr_special_upsell']['cpo_isr_special_upsell_items_num'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of "upsell" tagged items to display'),
+    '#default_value' => variable_get('cpo_isr_special_upsell_items_num', 5),
+    '#description' => t("The Upsell pane on cart page shows !max item. out of which, how many items should be comming from products tagged with \"Upsell\". The rest of the items will be produced by the upsell module",array('!max'=> $upsell_conf['pane']['max'])),
+    '#required' => TRUE,
+  );
+  
+  $form['cpo_isr_special_slip_footer_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Text for bottom of package slip.'),
+    '#default_value' => variable_get('cpo_isr_special_slip_footer_text', 'Text for bottom of shipping slip'),
+    '#rows' => 8,
+    '#cols' => 100,
+    '#required' => TRUE,
+  );
+  
+  
+  return system_settings_form($form);
+}
+
+function cpo_isr_special_form_alter(&$form, $form_state, $form_id) {
+  //dsm($form,$form_id);
+  if ($form_id == 'search_block_form') {
+    $form['search_block_form']['#title'] = variable_get('cpo_isr_special_search_text', 'Search ISR!');
+  }
+  if ($form_id == 'search_form') {
+    //$form['search_block_form']['#title'] = variable_get('cpo_isr_special_search_text', 'Search ISR!');
+	unset($form);
+    //dsm($form,$form_id);
+  }
+  if ($form_id == 'user_profile_form') {
+    //dsm($form,$form_id);
+	$form['#submit'][] = 'user_profile_form_submit';
+  }
+}
+
+function cpo_isr_special_get_price_display($node) {
+  //dpm($node);
+  // comming from a views page or block:
+  if (!$node->field_sale_price) {
+    $node = node_load($node);
+  }
+  global $user;
+  //if (in_array('wholeseller', $user->roles) && $node->field_wholesale_price[0]['value'] != NULL) {
+  if (in_array('wholeseller', $user->roles)) {
+		  $price = ($node->cost+($node->cost/100*variable_get('cpo_isr_special_wholesalers_up_percentage', 20)))/variable_get('cpo_isr_special_wholesalers_dollarvalue', 3.6);
+  }
+  elseif ($node->field_sale_price[0]['value'] != NULL) {
+    $price = $node->field_sale_price[0]['value'];
+  }
+  else {
+    $price = $node->sell_price;
+  }
+  return $price;
+}
+
+/**
+* Check to see if a user has been assigned a certain role.
+*
+* @param $role
+*   The name of the role you're trying to find.
+* @param $user
+*   The user object for the user you're checking; defaults to the current user.
+* @return
+*   TRUE if the user object has the role, FALSE if it does not.
+*/
+function cpo_isr_special_user_has_role($role, $user = NULL) {
+  if ($user == NULL) {
+    global $user;
+  }
+
+  if (is_array($user->roles) && in_array($role, array_values($user->roles))) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+function term_depth($tid) {
+  $parent = db_result(db_query("SELECT parent FROM term_hierarchy WHERE tid=%d", $tid));
+  if($parent == 0) {
+    return 1;
+  }else  {
+    return 1+term_depth($parent);
+  }
+}
+
+/**
+ * Implementation of hook_block.
+ *
+ * Provides a single block that allows the user to turn on translation helps.
+ */
+function cpo_isr_special_block($op = 'list', $delta = '', $edit = array()) {
+  // The $op parameter determines what piece of information is being requested.
+  switch ($op) {
+    case 'list':
+      $blocks['ajax-logo']['info'] = t('Ajax LOGO');
+	  $blocks[0]['info'] = t('CPO - Custom Search Box - delta0');
+	  $blocks[1]['info'] = t('CPO - Custom Search Box - delta1');
+      return $blocks;
+
+    case 'view':
+	  if ($delta == 'ajax-logo') {
+        $block['subject'] = t('Ajax Logo');
+        $block['content'] = cpo_isr_special_ajax_logo_content();
+	  }
+	  else {
+        $block['subject'] = t('CPO - Custom Search Box - ') . $delta;
+        $block['content'] = cpo_isr_special_custom_search_box_content($delta);     
+	  }
+      return $block;
+  }
+}
+
+function cpo_isr_special_ajax_logo_content() {
+  $sender = '';
+  $sendref = $_SERVER['HTTP_REFERER'];
+  if ($_GET['refck']) {
+    //$sendref = urldecode($_GET['refck']);
+    $sendref = $_GET['refck'];
+	$sender .= '+';
+  }
+  // 000
+  
+	  if (!isset($_SESSION['uc_referral_code'])) {
+	    //search is set in allowed engines?
+	    $search = serapi_get_search($sendref);
+	    if ($search['engine']) {
+          $_SESSION['uc_referral_code'] = 'search_engine';
+		  $sender .= '1';
+          //uc_referrals_log("uc_referrals_init: url key=search engine");
+	    }
+	    //default user...
+	    else {
+          $_SESSION['uc_referral_code'] = 'default';
+		  $sender .= '0';
+          //uc_referrals_log("uc_referrals_init: url key=default");
+	    }
+		$sender .= $_SESSION['uc_referral_code'];
+	  }
+	  else {
+	    $sender .= 'alrs';
+	  }
+  
+  // 000
+  //$spec = uc_referrals_init(true, $sendref);
+  global $base_path;
+
+  // check if no ref info exists
+  $ref = $_SESSION['uc_referral_code'];
+  $img = '/logo/logo.png';
+  // check if ref code exists for ref or search egnine
+  if ($ref != 'default' && $ref != '') {
+	if ($ref == 'bodya' || $ref == 'EuroMac' || $ref == 'shop4zion' || $ref == 'preconnect' || $ref == 'JlmPedia' || $ref == 'jp' || $ref == '1976' || $ref == 'preconnect' || $ref == '1669' || $ref == '2012' || $ref == '1982' || $ref == '1928' || $ref == 'ASAK') {
+	  $img = '/logo/' . $ref . '.png';
+	}
+  }
+  //$alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store - ' . $ref . ' - ' . $_SERVER['HTTP_REFERER'];
+  $alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store';
+  //$alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store' . $sendref . ' - ' . $spec;
+  //$alttext = 'Buy Made in Israel Products & Jewish Gifts Online - Israel-Catalog.com Web Store - ' . $sender;
+  
+  $output = '<div id="site-logo"><a rel="home" title="'. $alttext .'" name="home" href="/">';
+  $output .= '<img id="logo-image" alt="'. $alttext .'" src="' . $img . '">';
+  $output .= '</a></div>';
+  return $output;
+}
+
+function cpo_isr_special_custom_search_box_content($delta) {
+  $output = '';
+  if ($delta == 0) {
+      $output .= '<span class="icon-pic"></span>';
+	  $output .= '<span class="pretext">' . variable_get('cpo_isr_more_giftbox_1_subtitle', 'Just make your selection...') . '</span>';
+	  $output .= '<div><form name="demiqui">';
+	  $output .= '<div class="select-float"><select id="pdfdo1-1" class="pfdo1" name="firstoptions">';
+	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_1_line_first', 'Select a destination ...') . '</option>';
+	  $terms = taxonomy_get_tree(5);
+	  foreach ($terms as $term) {
+	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
+	  }
+      $output .= '</select></div>';
+	  
+	  $output .= '<div class="select-float"><select id="pdfdo1-2" class="pfdo1" name="secondoptions">';
+	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_1_line_second', 'Select an event ...') . '</option>';
+	  $terms = taxonomy_get_tree(6);
+	  foreach ($terms as $term) {
+	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
+	  }
+      $output .= '</select></div>';
+	  
+	  $output .= '</form>';
+	  $output .= '<form id="ciscsb-' . $delta . '-delta" method="get" action="/search/apachesolr_search" name="quiform">';
+	  $output .= '<input type="hidden" id="pfdid1" type="text" name="filters" value="" />';
+	  $output .= '<input class="form-submit" type="submit" id="cis-' . $delta . '-block" value="' . t('Search') . '">';
+	  $output .= '</form></div>';
+
+  }
+  if ($delta == 1) {
+	  //$output .= '<span class="pretext">Quickly find the perfect gift!</span>';
+	  $output .= '<span class="icon-pic"></span>';
+	  $output .= '<div><form name="demiqua">';
+	  
+	  $output .= '<div class="select-float"><select id="pdfdo2-1" class="pfdo2" name="secondoptions2">';
+	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_2_line_first', 'Select a event ...') . '</option>';
+	  $terms = taxonomy_get_tree(6);
+	  foreach ($terms as $term) {
+	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
+	  }
+      $output .= '</select></div>';
+
+	  $output .= '<div class="select-float"><select id="pdfdo2-2" class="pfdo2" name="firstoptions2">';
+	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_2_line_second', 'Select a gender ...') . '</option>';
+	  $terms = taxonomy_get_tree(7);
+	  foreach ($terms as $term) {
+	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
+	  }
+      $output .= '</select></div>';
+	  
+	  $output .= '<div class="select-float"><select id="pdfdo2-3" class="pfdo2" name="thirdoptions2">';
+	  $output .= '<option val="000">' . variable_get('cpo_isr_more_giftbox_2_line_third', 'Select a price range ...') . '</option>';
+	  $terms = taxonomy_get_tree(8);
+	  foreach ($terms as $term) {
+	    $output .= '<option value="' . $term->tid . '">' . $term->name . '</option>';
+	  }
+      $output .= '</select></div>';
+	  
+	  $output .= '</form>';
+	  $output .= '<form id="ciscsb-' . $delta . '-delta" method="get" action="/search/apachesolr_search" name="quaform">';
+	  $output .= '<input type="hidden" id="pfdid2" type="text" name="filters" value="" />';
+	  $output .= '<input class="form-submit" type="submit" id="cis-' . $delta . '-block" value="' . t('Search') . '">';
+	  $output .= '</form></div>';
+  }
+  return $output;
+}
+
+// Solr HOOKS
+function cpo_isr_special_apachesolr_prepare_query(&$query,&$params) {
+  //dpm($query);
+  $query->remove_available_sort('created');
+  $query->remove_available_sort('type');
+  $query->remove_available_sort('sort_name');
+  //$query->set_available_sort
+  //$query->add_filter('name', $facet);
+  //$params['fl']
+}
+
+function cpo_isr_special_get_adds() {
+  $return = "<script type='text/javascript' src='http://partner.googleadservices.com/gampad/google_service.js'>
+</script>
+<script type='text/javascript'>
+GS_googleAddAdSenseService('ca-pub-0925281971271946');
+GS_googleEnableAllServices();
+</script>
+<script type='text/javascript'>";
+
+  // Category pages
+  if (arg(0) == 'taxonomy' && arg(1) == 'term') {
+    $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_bottom-left_728x90");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_bottom-right_200x90");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_middle-left_728x90");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_category-page_middle-right_200x90");';
+  }
+  
+  // Search pages
+  elseif (arg(0) == 'search') {
+    $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_search-results-page_bottom-left_468x60");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_search-results-page_bottom-right_468x60");';
+  }
+  
+  // Front page
+  elseif (arg(0) == 'node' && arg(1) == '168') {
+    $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_above-footer-left_468x60");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_above-footer-right_468x60");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_home-page_middle-below-tabs_728x90_");';
+  }
+  
+  // Content pages
+  elseif (arg(0) == 'node') {
+    $node = node_load(arg(1));
+	if ($node->type == 'general') {
+	  $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_product-page_bottom-left_468x60");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_product-page_bottom-right_468x60");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_product-page_video-right_336x280");';
+	}
+	else {
+	  $return .= 'GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_content-page_middle-right-column_160x90");
+GA_googleAddSlot("ca-pub-0925281971271946", "Israel-catalog_content-page_top-right-column_160x600");';
+	}
+  }
+  
+  if (arg(0) == 'cart') {
+    return '';
+  }
+  
+  $return .= "</script>
+<script type='text/javascript'>
+GA_googleFetchAds();
+</script>";
+
+  //return '';
+  
+  return $return;
+}
+
+function cpo_isr_special_pap_code($oid) {
+  $order = uc_order_load($oid);
+  //dpm($order);
+  $aff = '';
+  if (is_numeric($oid) && $oid >= 2) {
+    $aff = db_result(db_query("SELECT code FROM {uc_referrals_order_codes} WHERE order_id=%d", $oid));
+  }
+  
+  $return = '<script id="pap_x2s6df8d" src="https://www.tsglobalmarketing.com/affiliates/scripts/salejs.php" type="text/javascript"></script><script type="text/javascript">';
+  $i = 1;
+  $total = 0;
+  foreach ($order->products as $product) {
+    if ($product->qty == 1 || $product->qty == '1') {
+      $return .= 'var sale' . $i . ' = PostAffTracker.createSale();
+	  ';
+	  $return .= "sale" . $i . ".setTotalCost('" . $product->price . "');
+	  ";
+	  $return .= "sale" . $i . ".setOrderID('" . $order->order_id . "_" . $i . "');
+	  ";
+	  $return .= "sale" . $i . ".setProductID('" . $product->model . "');
+	  ";
+	  if ($aff != '') {
+	    $return .= "sale" . $i . ".setAffiliateID('" . $aff . "');
+	    ";
+	  }
+	//$return .= "sale" . $i . ".setSubID2('" . $order->order_id . "_" . $i . "');";
+	//$return .= "sale" . $i . ".setSubID1('" . $order->order_id . "_" . $i . "');";
+	//$return .= "sale" . $i . ".setChannelID('" . $order->order_id . "_" . $i . "');";
+	  $return .= '
+	
+	  ';
+	  $i++;
+	  $total += $product->price;
+	}
+	// multiple qty for this product
+	else {
+      $z = $product->qty;
+	  while ($z >= 1) {
+        $return .= 'var sale' . $i . ' = PostAffTracker.createSale();
+	    ';
+	    $return .= "sale" . $i . ".setTotalCost('" . $product->price . "');
+	    ";
+	    $return .= "sale" . $i . ".setOrderID('" . $order->order_id . "_" . $i . "');
+	    ";
+	    $return .= "sale" . $i . ".setProductID('" . $product->model . "');
+	    ";
+	    if ($aff != '') {
+	      $return .= "sale" . $i . ".setAffiliateID('" . $aff . "');
+	      ";
+	    }
+	    $return .= '
+	  
+	    ';
+	    $i++;
+	    $z = $z-1;
+		$total += $product->price;
+	  }
+	}
+  }
+  $return .= 'PostAffTracker.register();
+</script>';
+  $return .= '
+  <!-- Begin ZEDO -->
+<script language="JavaScript" type="text/javascript">
+var zzp=new Image();
+if (location.protocol == "https:") {
+zzp.src="https://ss1.zedo.com/ads2/t?o=236273;h=863546;j=' . $total*100 . ';z="+Math.random();
+} else {
+zzp.src="http://xads.zedo.com/ads2/t?o=236273;h=863546;j=' . $total*100 . ';z="+Math.random();
+}
+</script>
+<!-- End ZEDO -->
+<script type="text/javascript">
+/* <![CDATA[ */
+var google_conversion_id = 1071958609;
+var google_conversion_language = "en";
+var google_conversion_format = "3";
+var google_conversion_color = "f9f8ed";
+var google_conversion_label = "purchase";
+var google_conversion_value = 0;
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://www.googleadservices.com/pagead/conversion.js">
+</script>
+<noscript>
+<div style="display:inline;">
+<img height="1" width="1" style="border-style:none;" alt="" src="https://www.googleadservices.com/pagead/conversion/1071958609/?label=purchase&amp;guid=ON&amp;script=0"/>
+</div>
+</noscript>';
+
+  return $return;
+}
+
+function cpo_isr_special_get_real_title($tid, $loc = 1) {
+  $title = db_result(db_query("SELECT name FROM term_data WHERE tid=%d", $tid));
+  $select = 'tfc_title';
+  if ($loc != 1) $select = 'tfc_subtitle';
+  $subtitle = db_result(db_query("SELECT " . $select . " FROM term_fields_term WHERE tid=%d", $tid));
+  if ($subtitle != '' && $subtitle != NULL) {
+    $title = $subtitle;
+  }
+  return $title;
+}
+
+function cpo_isr_special_supp() {
+$supp = array();
+$supp[7] = "Yossi Bachar";
+$supp[8] = "TES";
+$supp[9] = "Teleflora";
+$supp[10] = "Tal Shahar";
+$supp[11] = "tal-shahar/Modan";
+$supp[12] = "T-Shirts";
+$supp[13] = "Steimatzky LA";
+$supp[14] = "Source Vagabond";
+$supp[15] = "Shraga Landesman";
+$supp[16] = "Sela perfums";
+$supp[17] = "Rokdim";
+$supp[18] = "Kosherline";
+$supp[19] = "Kosher Baskets";
+$supp[20] = "iStudyHebrew.com";
+$supp[21] = "Israel Museum";
+$supp[22] = "Ida Reinman";
+$supp[23] = "Hibert";
+$supp[24] = "Goodtime";
+$supp[25] = "Gefen Publishing";
+$supp[26] = "etrog";
+$supp[27] = "Eretz Magazine";
+$supp[28] = "Ephraim kaye";
+$supp[29] = "Ellen Braun";
+$supp[30] = "EliteStore";
+$supp[31] = "Elite";
+$supp[32] = "Eli Zarini";
+$supp[33] = "Davka";
+$supp[34] = "David Tamerin";
+$supp[35] = "Computronic";
+$supp[36] = "Ben Ami";
+$supp[37] = "Baskets to Soldiers";
+$supp[38] = "Albatros";
+$supp[82] = "Ronlight";
+$supp[39] = "Rebecca Shore";
+$supp[40] = "Postal Service";
+$supp[41] = "Or";
+$supp[42] = "Minerals";
+$supp[43] = "Mazo";
+$supp[44] = "Lior";
+$supp[45] = "Jerusalem Stone";
+$supp[46] = "Israel-Diamonds";
+$supp[47] = "Hagim";
+$supp[48] = "H&B Dead Sea";
+$supp[49] = "Grapeman";
+$supp[50] = "GPS2GO";
+$supp[51] = "EstiB";
+$supp[52] = "Edita Jewelry";
+$supp[53] = "Dvarim";
+$supp[54] = "Dan Designs";
+$supp[55] = "Bar Mitzva";
+$supp[56] = "Adi Raz";
+$supp[57] = "Adina Plastelina";
+$supp[58] = "Anava Jewelry";
+$supp[59] = "Avidan";
+$supp[60] = "Ayala Adler";
+$supp[61] = "Biblical Hebrew";
+$supp[62] = "Camel Sandals";
+$supp[63] = "comfy";
+$supp[64] = "Emanuel Studio";
+$supp[65] = "Emuna Jewelry";
+$supp[66] = "Galilee Silk";
+$supp[67] = "Hadad Silversmiths";
+$supp[68] = "Hashaked";
+$supp[69] = "Idit Jewelry";
+$supp[70] = "Israel Posters";
+$supp[71] = "istudyHebrew";
+$supp[72] = "Jewelry Tale";
+$supp[73] = "karaoke";
+$supp[74] = "Old City Press";
+$supp[75] = "Organic Baskets";
+$supp[76] = "Shlomit Ofir";
+$supp[77] = "Shraga Landesman";
+$supp[78] = "Skypics";
+$supp[79] = "Tenua";
+$supp[80] = "Ugo Luzzati";
+$supp[81] = "Wasershtrum";
+$output = '<pre>' . print_r($supp,1) . '</pre>';
+drupal_set_message($output);
+  foreach($supp as $uid => $name) {
+    $sql = db_query("UPDATE users SET name = '%s' WHERE uid = %d",$name,$uid);
+  }
+  return 'done';
+}

@@ -1,0 +1,12 @@
+/*.webform-client-form div.form-item label, div.form-item input[type="text"] {
+    float:left;
+    display:block;
+}
+.webform-client-form div.form-item label {
+    margin-right: 5px;
+}
+.webform-client-form div.form-item {
+    width:100%;
+    overflow:auto;
+    margin:5px 0px;
+}*/

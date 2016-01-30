@@ -1,0 +1,60 @@
+form#search-block-form div div.container-inline {
+  position:relative;
+}
+
+div#edit-search-block-form-1-wrapper {
+  position:relative;
+  float:left;
+  margin-right:3px;
+}
+
+input#edit-search-block-form-1 {
+  width:10em;
+}
+
+label.overlabel {
+  position:absolute;
+  top:3px;
+  left:5px;
+  z-index:1;
+  color:#999;
+}
+
+.prehide, .fpt-hider {
+  display: none;
+}
+
+/* General sortbydrop styles */       
+.sortbydrop dd, .sortbydrop dt, .sortbydrop ul { margin:0px; padding:0px; }
+.sortbydrop dd { position:relative; }
+/* DT styles for sliding doors */
+/*.sortbydrop dt a {background:#e4dfcb url(arrow.png) no-repeat scroll right center;*/.sortbydrop dt a {background-color:#e4dfcb;
+    display:block; padding-right:20px; border:1px solid #d4ca9a; width:150px;}
+.sortbydrop dt a span {cursor:pointer; display:block; padding:5px;}
+/* UL styles */
+.sortbydrop dd ul { background:#e4dfcb none repeat scroll 0 0; display:none;
+    list-style:none; padding:5px 0px; position:absolute; 
+    left:0px; top:2px; width:auto; min-width:170px;}
+.sortbydrop span.value { display:none;}
+.sortbydrop dd ul li a { padding:5px; display:block;}
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle { height: 210px !important; margin-top: -12px; padding: 12px; overflow: hidden; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item  { float: left; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item .fptb-image { float: left; width: 200px; text-align: center; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item .fptb-side { float: left; width: 72%; position:relative; height:209px; overflow:hidden; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item .fptb-side .fptb-link-title { font-weight: bold; font-size: 21px; margin-bottom:10px; display:block; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item .fptb-side .moreinfo { background: url(images/featured-button.jpg) no-repeat; font-size: 16px; color: #fff; font-weight: bold; display: block; text-align: center; width: 137px; height: 27px; line-height:1.7; position:absolute; right:10px; bottom:0px; }
+#block-views-front_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item .fptb-side .moreinfo:hover { text-decoration:none; }
+
+#block-views-front_banners-block_1 .innerviewmiddle {					/*	the HTML element that will be turned into a carousel */
+	width: 730;		/*	depending on your situation */
+	height: 248px;		/*	depending on your situation */
+	overflow: hidden;
+}
+
+#block-views-taxonomy_big_banners-block_1.caroufredsel_wrapper > .innerviewmiddle { height: 164 !important; margin-top: -12px; padding: 12px; overflow: hidden; }
+#block-views-taxonomy_big_banners-block_1 .caroufredsel_wrapper > .innerviewmiddle .fpt-item  { float: left; }
+
+/*product page*/
+#gen-wrapper {
+  height: 5px;
+}

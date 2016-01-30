@@ -1,0 +1,14 @@
+.oid-comm {
+    border-top: 1px solid black;
+	padding-top: 8px;
+	padding-bottom: 15px;
+}
+.oid-co-title {
+    font-size: 88%;
+	color: #898989;
+}
+.dss { font-style: oblique; color: #000000; }
+.oid-co-comment { padding: 3px 0px 4px 20px; font-weight: bold; }
+.oid-co-change { padding: 0px 0px 0px 20px; font-style: italic; font-size: 88%; color: #898989;}
+div#edit-status-wrapper label { display: inline; font-weight: normal; }
+form#uc-product-comments-add-comment-form h4 { font-size: 120%; padding-bottom: 10px; }

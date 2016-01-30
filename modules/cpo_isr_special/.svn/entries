@@ -1,0 +1,64 @@
+8
+
+dir
+755
+https://cpodev.jira.com/svn/ISR/trunk/modules/cpo_isr_special
+https://cpodev.jira.com/svn
+
+
+
+2010-11-25T14:37:50.562350Z
+755
+asaph
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+e6edf6fb-f266-4316-afb4-e53d95876a76
+
+galleria
+dir
+
+cpo_isr_special.module
+file
+
+
+
+
+2010-11-25T14:38:25.000000Z
+c95d69e860c8a25680eb6d70be50d6da
+2010-11-25T14:37:50.562350Z
+755
+asaph
+
+galleryview-2.1.1
+dir
+
+css
+dir
+
+cpo_isr_special.info
+file
+
+
+
+
+2010-10-08T20:01:30.000000Z
+7d3eec128b897c9b10e0477fb9703ece
+2010-09-04T20:19:15.966095Z
+50
+asaph
+
+js
+dir
+

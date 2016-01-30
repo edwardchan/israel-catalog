@@ -1,0 +1,30 @@
+.order-mini-pane {
+  float: left;
+  position: relative;
+  height: 135px;
+  top: 15px;
+}
+
+.admin-table-order {
+  border: 1px solid #E0E0E0;
+}
+
+.admin-light-back {
+  background-color: #E0E0E0;
+}
+
+.admin-light-back p {
+  color: #cc6600;
+}
+
+.admin-order-ship {
+  background-color: #E0E0E0;
+}
+
+.admin-order-prods {
+  background-color: #E0E0E0;
+}
+
+.product-description li {
+  font-size: 13px !important;
+}

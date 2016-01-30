@@ -1,0 +1,94 @@
+$(document).ready(function() {
+  $('a.why-link').qtip({
+     content: $('a.whylink').attr('title'),
+	 style: {
+	   tip: 'bottomMiddle',
+	   border: {
+	     width: 4,
+		 radius: 8
+	   },
+	   name: 'light'
+	 },
+	 position: {
+       corner: {
+         target: 'topMiddle',
+         tooltip: 'bottomMiddle'
+       }
+     },
+     show: 'mouseover',
+     hide: 'mouseout'
+  });
+  $('a.why-link').click(function () {
+    return false;
+  });
+  // --> Cart page carousel
+  $(".caro-me").carouFredSel({
+	direction: "right",
+	width: 960,
+	height: 250,
+	visibleItems: 5,
+	items : {
+	    width: 180
+	},
+	prev : {	
+		button	: "#pag-cart-prev",
+		key		: "left"
+	},
+	next : { 
+		button	: "#pag-cart-next",
+		key		: "right"
+	},
+	scroll: {
+	  easing: "linear",
+	  pauseOnHover: true,
+	  items: 1
+	},
+	auto: {
+	  pauseDuration: 8000,
+	  items: 1
+	}
+  });
+  
+  // <--
+  
+  // --> Checkout page collapse
+  
+  $("#edit-panes-gift-order-gift-order-message-wrapper").css("display","none");
+  $("#inner-coupon-wrap").css("display","none");
+  
+  //$("#edit-panes-gift-order-gift-order-mark-wrapper").mouseup(function () {
+  //  $("#edit-panes-gift-order-gift-order-message-wrapper").slideToggle();
+  //});
+  
+  //$("#edit-panes-coupon-coupon-mark-wrapper").mouseup(function () {
+  //  $("#inner-coupon-wrap").slideToggle();
+  //});
+  
+  $("#edit-panes-coupon-coupon-mark").click(function(){
+    // If checked
+    if ($("#edit-panes-coupon-coupon-mark").is(":checked")) {
+      $("#inner-coupon-wrap").slideDown('slow');
+    }
+    else {     
+      $("#inner-coupon-wrap").slideUp('slow');
+    }
+  });
+  $("#edit-panes-gift-order-gift-order-mark").click(function(){
+    // If checked
+    if ($("#edit-panes-gift-order-gift-order-mark").is(":checked")) {
+      $("#edit-panes-gift-order-gift-order-message-wrapper").slideDown('slow');
+    }
+    else {     
+      $("#edit-panes-gift-order-gift-order-message-wrapper").slideUp('slow');
+    }
+  });
+  // <--
+
+  $(".cart-related-item").removeClass('fpt-hider');
+  if ($(".uc-discounts-cart-pane-container").length > 0){
+    $("td.subtotal strong").hide();
+    $("td.subtotal span").hide();
+	$("td.subtotal").css('height', '105px');
+  }
+  triggerQuoteCallback();
+});

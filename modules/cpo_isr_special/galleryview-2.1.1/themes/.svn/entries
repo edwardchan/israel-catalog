@@ -1,0 +1,34 @@
+8
+
+dir
+755
+https://cpodev.jira.com/svn/ISR/trunk/modules/cpo_isr_special/galleryview-2.1.1/themes
+https://cpodev.jira.com/svn
+
+
+
+2010-11-05T07:32:54.394779Z
+392
+tom
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+e6edf6fb-f266-4316-afb4-e53d95876a76
+
+dark
+dir
+
+light
+dir
+
